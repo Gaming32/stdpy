@@ -10,6 +10,7 @@ jobs:
         # and run on both Linux and Windows
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
+    if: github.ref != 'refs/heads/gh-pages'
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK ${{ matrix.java }}

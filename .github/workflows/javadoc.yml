@@ -4,7 +4,7 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: github.ref != 'refs/heads/<branch_name>'
+    if: github.ref != 'refs/heads/gh-pages'
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK ${{ matrix.java }}
@@ -20,7 +20,7 @@ jobs:
         run: |
           git config user.email "not@actual.person"
           git config user.name "GH Actions Bot"
-      - name: Upload artifact
+      - name: Commit javadocs
         run: |
           git fetch
           git checkout -t origin/gh-pages
