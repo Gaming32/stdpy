@@ -17,7 +17,8 @@ jobs:
           mvn clean javadoc:javadoc -f pom.xml
       - name: Upload artifact
         run: |
-          git checkout gh-pages
+          git fetch
+          git checkout -t origin/gh-pages
           rm -rf javadoc
           mv stdpy/target/apidocs javadoc
           git add javadoc
