@@ -16,6 +16,10 @@ jobs:
         run: |
           cd stdpy
           mvn clean javadoc:jar -f pom.xml
+      - name: Configure git
+        run: |
+          git config user.email "not@actual.person"
+          git config user.name "GH Actions Bot"
       - name: Upload artifact
         run: |
           git fetch
