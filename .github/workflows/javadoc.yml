@@ -1,4 +1,4 @@
-name: maven
+name: javadoc
 on: [push]
 
 jobs:
