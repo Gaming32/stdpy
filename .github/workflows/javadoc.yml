@@ -1,0 +1,25 @@
+name: maven
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK ${{ matrix.java }}
+        uses: actions/setup-java@v2.1.0
+        with:
+          java-version: 16
+          distribution: zulu
+      - name: Build with Maven
+        run: |
+          cd stdpy
+          mvn clean javadoc:javadoc -f pom.xml
+      - name: Upload artifact
+        run: |
+          git switch --discard-changes gh-pages
+          rm -rf javadoc
+          mv stdpy/target/apidocs javadoc
+          git add javadoc
+          git commit -m "Update javadoc for commit ${{ github.sha }}"
+          git push
