@@ -1,1 +1,0 @@
-typeSearchIndex = [{"l":"All Classes","u":"allclasses-index.html"},{"p":"io.github.gaming32.stdpy","l":"BlockDeque.Block"},{"p":"io.github.gaming32.stdpy","l":"BlockDeque"},{"p":"io.github.gaming32.stdpy","l":"BlockDeque.DequeIter"},{"p":"io.github.gaming32.stdpy","l":"BlockDeque.DequeRevIter"}];updateSearchResults();
