@@ -435,6 +435,9 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
         freeblock(leftblock);
     }
 
+    /**
+     * Rotate the deque <code>n</code> steps to the right (default n=1).  If <code>n</code> is negative, rotates left.
+     */
     public void rotate(int n) {
         Block b = null;
         Block leftblock = this.leftblock;
@@ -567,10 +570,16 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
         this.rightindex = rightindex;
     }
 
+    /**
+     * @see #rotate(int)
+     */
     public void rotate() {
         rotate(1);
     }
 
+    /**
+     * D.reverse() -- reverse *IN PLACE*
+     */
     public void reverse() {
         Block leftblock = this.leftblock;
         Block rightblock = this.rightblock;
@@ -743,7 +752,7 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
         return 0 <= i && i < limit;
     }
 
-    protected IndexOutOfBoundsException indexOutOfBounds(int i) {
+    private IndexOutOfBoundsException indexOutOfBounds(int i) {
         return new IndexOutOfBoundsException("Index " + i + " out of bounds for deque of length " + this.size);
     }
 
