@@ -27,10 +27,10 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
 
     protected Block leftblock;
     protected Block rightblock;
-    protected int leftindex;
-    protected int rightindex;
-    protected long state;
-    protected int maxlen;
+    protected int leftindex;       /* 0 <= leftindex < BLOCKLEN */
+    protected int rightindex;      /* 0 <= rightindex < BLOCKLEN */
+    protected long state;          /* incremented whenever the indices move */
+    protected int maxlen;          /* maxlen is Integer.MAX_VALUE for unbounded deques */
     protected int numfreeblocks;
     protected Block[] freeblocks = new Block[MAXFREEBLOCKS];
 
@@ -93,6 +93,7 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
             } else {
                 assert(this.leftblock == this.rightblock);
                 assert(this.leftindex == this.rightindex + 1);
+                /* re-center instead of freeing a block */
                 this.leftindex = CENTER + 1;
                 this.rightindex = CENTER;
             }
@@ -125,6 +126,7 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
             } else {
                 assert(this.leftblock == this.rightblock);
                 assert(this.leftindex == this.rightindex + 1);
+                /* re-center instead of freeing a block */
                 this.leftindex = CENTER + 1;
                 this.rightindex = CENTER;
             }
@@ -192,6 +194,7 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
         E item;
         int maxlen = this.maxlen;
 
+        /* Handle case where this == c */
         if (this == c) {
             return addAllLast(new ArrayList<>(this));
         }
@@ -205,6 +208,7 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
             return consumeIterator(it);
         }
 
+        /* Space saving heuristic.  Start filling from the left */
         if (this.size == 0) {
             assert(this.leftblock == this.rightblock);
             assert(this.leftindex == this.rightindex + 1);
@@ -227,6 +231,7 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
         E item;
         int maxlen = this.maxlen;
 
+        /* Handle case where this == c */
         if (this == c) {
             return addAllFirst(new ArrayList<>(this));
         }
@@ -240,6 +245,7 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
             return consumeIterator(it);
         }
 
+        /* Space saving heuristic.  Start filling from the right */
         if (this.size == 0) {
             assert(this.leftblock == this.rightblock);
             assert(this.leftindex == this.rightindex + 1);
@@ -273,6 +279,18 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
             return;
         }
 
+        /* During the process of clearing a deque, decrefs can cause the
+           deque to mutate.  To avoid fatal confusion, we have to make the
+           deque empty before clearing the blocks and never refer to
+           anything via deque->ref while clearing.  (This is the same
+           technique used for clearing lists, sets, and dicts.)
+           Making the deque empty requires allocating a new empty block.  In
+           the unlikely event that memory is full, we fall back to an
+           alternate method that doesn't require a new block.  Repeating
+           pops in a while-loop is slower, possibly re-entrant (and a clever
+           adversary could cause it to never terminate).
+        */
+
         try {
             b = newblock();
         } catch (OutOfMemoryError e) {
@@ -282,10 +300,12 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
             return;
         }
 
+        /* Remember the old size, leftblock, and leftindex */
         n = this.size;
         leftblock = this.leftblock;
         leftindex = this.leftindex;
 
+        /* Set the deque to be empty using the newly allocated block */
         this.size = 0;
         this.leftblock = b;
         this.rightblock = b;
@@ -293,6 +313,9 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
         this.rightindex = CENTER;
         this.state++;
 
+        /* Now the old size, leftblock, and leftindex are disconnected from
+           the empty deque and we can use them to decref the pointers.
+        */
         m = (BLOCKLEN - leftindex > n) ? n : BLOCKLEN - leftindex;
         itemprtData = leftblock.data;
         itemptr = leftindex;
@@ -462,18 +485,22 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
         E tmp;
 
         while (--n >= 0) {
+            /* Validate that pointers haven't met in the middle */
             assert(leftblock != rightblock || leftindex < rightindex);
 
+            /* Swap */
             tmp = (E)leftblock.data[leftindex];
             leftblock.data[leftindex] = rightblock.data[rightindex];
             rightblock.data[rightindex] = tmp;
 
+            /* Advance left block/index pair */
             leftindex++;
             if (leftindex == BLOCKLEN) {
                 leftblock = leftblock.rightlink;
                 leftindex = 0;
             }
 
+            /* Step backwards with the right block/index pair */
             rightindex--;
             if (rightindex < 0) {
                 rightblock = rightblock.leftlink;
@@ -500,6 +527,7 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
                 throw new IllegalStateException("deque mutated during iteration");
             }
 
+            /* Advance left block/index pair */
             index++;
             if (index == BLOCKLEN) {
                 b = b.rightlink;
@@ -769,6 +797,7 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
             int vs, ws;
             boolean b;
 
+            /* Shortcuts */
             vs = this.size;
             ws = w.size;
             if (this == w) {
@@ -778,6 +807,7 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
                 return false;
             }
 
+            /* Search for the first index where items are different */
             it1 = this.iterator();
             it2 = w.iterator();
             for (;;) {
@@ -791,6 +821,7 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
                     return false;
                 }
             }
+            /* We reached the end of one deque or both */
             return true;
         }
     }
@@ -823,8 +854,8 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
         Block b;
         int index;
         BlockDeque<E> deque;
-        long state;
-        int counter;
+        long state;     /* state when the iterator is created */
+        int counter;    /* number of items remaining for iteration */
 
         private DequeIter() {
         }
