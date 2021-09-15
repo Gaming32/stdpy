@@ -58,6 +58,7 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
 
         b = newblock();
         
+        assert(BLOCKLEN >= 2);
         this.size = 0;
         this.leftblock = b;
         this.rightblock = b;
@@ -83,12 +84,15 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
         this.state++;
 
         if (this.rightindex < 0) {
-            if (this.size > 0) {
+            if (this.size != 0) {
                 prevblock = this.rightblock.leftlink;
+                assert(this.leftblock != this.rightblock);
                 freeblock(this.rightblock);
                 this.rightblock = prevblock;
                 this.rightindex = BLOCKLEN - 1;
             } else {
+                assert(this.leftblock == this.rightblock);
+                assert(this.leftindex == this.rightindex + 1);
                 this.leftindex = CENTER + 1;
                 this.rightindex = CENTER;
             }
@@ -104,6 +108,7 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
         if (this.size == 0) {
             throw new NoSuchElementException("pop from an empty deque");
         }
+        assert(this.leftblock != null);
         item = (E)this.leftblock.data[this.leftindex];
         this.leftblock.data[this.leftindex] = null;
         this.leftindex++;
@@ -111,12 +116,15 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
         this.state++;
 
         if (this.leftindex == BLOCKLEN) {
-            if (this.size > 0) {
+            if (this.size != 0) {
+                assert(this.leftblock != this.rightblock);
                 prevblock = this.leftblock.rightlink;
                 freeblock(prevblock);
                 this.leftblock = prevblock;
                 this.leftindex = 0;
             } else {
+                assert(this.leftblock == this.rightblock);
+                assert(this.leftindex == this.rightindex + 1);
                 this.leftindex = CENTER + 1;
                 this.rightindex = CENTER;
             }
@@ -198,6 +206,8 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
         }
 
         if (this.size == 0) {
+            assert(this.leftblock == this.rightblock);
+            assert(this.leftindex == this.rightindex + 1);
             this.leftindex = 1;
             this.rightindex = 0;
         }
@@ -231,6 +241,8 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
         }
 
         if (this.size == 0) {
+            assert(this.leftblock == this.rightblock);
+            assert(this.leftindex == this.rightindex + 1);
             this.leftindex = BLOCKLEN - 1;
             this.rightindex = BLOCKLEN - 2;
         }
