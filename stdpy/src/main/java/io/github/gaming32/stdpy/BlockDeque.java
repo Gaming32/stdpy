@@ -9,16 +9,73 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.function.Consumer;
 
-/* collections module implementation of a deque() datatype
-   Written and maintained by Raymond D. Hettinger <python@rcn.com>
-   Java version by Josiah (Gaming32) Glosson <gaming32i64@gmail.com>
-*/
+/**
+ * collections module implementation of a deque() datatype<br>
+ * Written and maintained by Raymond D. Hettinger &lt;python@rcn.com&gt;<br>
+ * Java version by Josiah (Gaming32) Glosson &lt;gaming32i64@gmail.com&gt;
+ */
 @SuppressWarnings("unchecked")
 public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
+    /**
+     * The block length may be set to any number over 1.  Larger numbers
+     * reduce the number of calls to the memory allocator, give faster
+     * indexing and rotation, and reduce the link to data overhead ratio.
+     * Making the block length a power of two speeds-up the modulo
+     * and division calculations in BlockDeque.get() and BlockDeque.set().
+     */
     protected static final int BLOCKLEN = 64;
+    /**
+     * The center index of each block
+     * @see #BLOCKLEN
+    */
     protected static final int CENTER = ((BLOCKLEN - 1) / 2);
+    /**
+     * The maximum number of blocks for freelisting
+     * @see #freeblocks
+     */
     protected static final int MAXFREEBLOCKS = 16;
 
+    /**
+     * <p>Data for deque objects is stored in a doubly-linked list of fixed
+     * length blocks.  This assures that appends or pops never move any
+     * other data elements besides the one being appended or popped.</p>
+     *
+     * <p>Another advantage is that it completely avoids use of <code>realloc()</code>,
+     * resulting in more predictable performance.</p>
+     *
+     * <p>Textbook implementations of doubly-linked lists store one datum
+     * per link, but that gives them a 200% memory overhead (a prev and
+     * next link for each datum) and it costs one <code>malloc()</code> call per data
+     * element.  By using fixed-length blocks, the link to data ratio is
+     * significantly improved and there are proportionally fewer calls
+     * to <code>malloc()</code> and <code>free()</code>.  The data blocks of consecutive pointers
+     * also improve cache locality.</p>
+     *
+     * <p>The list of blocks is never empty, so <code>d.leftblock</code> and <code>d.rightblock</code>
+     * are never equal to <code>null</code>.  The list is not circular.</p>
+     *
+     * <p>A deque <code>d</code>'s first element is at <code>d.leftblock[leftindex]</code>
+     * and its last element is at <code>d.rightblock[rightindex]</code>.</p>
+     *
+     * <p>The indices, <code>d.leftindex</code> and <code>d.rightindex</code> are always in the range:<br>
+     *     <code>0 &lt;= index &lt; BLOCKLEN</code></p>
+     *
+     * <p>And their exact relationship is:<br>
+     *     <code>(d.leftindex + d.len - 1) % BLOCKLEN == d.rightindex</code></p>
+     *
+     * <p>Whenever <code>d.leftblock == d.rightblock</code>, then:<br>
+     *     <code>d.leftindex + d.len - 1 == d.rightindex</code></p>
+     *
+     * <p>However, when <code>d.leftblock != d.rightblock</code>, the <code>d.leftindex</code> and
+     * <code>d.rightindex</code> become indices into distinct blocks and either may
+     * be larger than the other.</p>
+     *
+     * <p>Empty deques have:<br>
+     *     <code>d.len == 0</code><br>
+     *     <code>d.leftblock == d.rightblock</code><br>
+     *     <code>d.leftindex == CENTER + 1</code><br>
+     *     <code>d.rightindex == CENTER</code></p>
+     */
     protected static class Block {
         protected Block leftlink;
         protected Object[] data = new Object[BLOCKLEN];
@@ -27,11 +84,32 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
 
     protected Block leftblock;
     protected Block rightblock;
-    protected int leftindex;       /* 0 <= leftindex < BLOCKLEN */
-    protected int rightindex;      /* 0 <= rightindex < BLOCKLEN */
-    protected long state;          /* incremented whenever the indices move */
-    protected int maxlen;          /* maxlen is Integer.MAX_VALUE for unbounded deques */
+    /**
+     * 0 &lt;= leftindex &lt; BLOCKLEN
+     */
+    protected int leftindex;
+    /**
+     * 0 &lt;= rightindex &lt; BLOCKLEN
+     */
+    protected int rightindex;
+    /**
+     * incremented whenever the indices move 
+     */
+    protected long state;
+    /**
+     * maxlen is Integer.MAX_VALUE for unbounded deques
+     */
+    protected int maxlen;
+    /**
+     * The number of free blocks currently stored.
+     * @see #freeblocks
+     */
     protected int numfreeblocks;
+    /**
+     * A simple freelisting scheme is used to minimize calls to the memory
+     * allocator.  It accommodates common use cases where new blocks are being
+     * added at about the same rate as old blocks are being freed.
+    */
     protected Block[] freeblocks = new Block[MAXFREEBLOCKS];
 
     protected int size;
@@ -134,11 +212,23 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
         return item;
     }
 
+    /**
+     * <p>The deque's size limit is <code>d.maxlen</code>.  The limit can be zero or positive.
+     * If there is no limit, then <code>d.maxlen == Integer.MAX_VALUE</code>.</p>
+     *
+     * <p>After an item is added to a deque, we check to see if the size has
+     * grown past the limit. If it has, we get the size back down to the limit
+     * by popping an item off of the opposite end.  The methods that can
+     * trigger this are <code>append()</code>, <code>appendleft()</code>, <code>extend()</code>, and <code>extendleft()</code>.</p>
+     *
+     * <p>The method to check whether a deque needs to be trimmed uses a single
+     * unsigned test that returns <code>true</code> whenever <code>0 &lt;= maxlen &lt; deque.size</code>.</p>
+     */
     protected boolean needsTrim(int maxlen) {
         return maxlen < this.size;
     }
 
-    protected void appendInternal(E item, int maxlen) {
+    private void appendInternal(E item, int maxlen) {
         if (this.rightindex == BLOCKLEN - 1) {
             Block b = newblock();
             b.leftlink = this.rightblock;
@@ -161,7 +251,7 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
         appendInternal(e, this.maxlen);
     }
 
-    protected void appendleftInternal(E item, int maxlen) {
+    private void appendleftInternal(E item, int maxlen) {
         if (this.leftindex == 0) {
             Block b = newblock();
             b.rightlink = this.leftblock;
@@ -184,6 +274,11 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
         appendleftInternal(e, this.maxlen);
     }
 
+    /**
+     * Run an iterator to exhaustion.  Shortcut for
+     * the extend/extendleft methods when maxlen == 0.
+     * @return <code>false</code>
+     */
     protected boolean consumeIterator(Iterator<? extends E> it) {
         while (it.hasNext()) it.next();
         return false;
@@ -208,7 +303,7 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
             return consumeIterator(it);
         }
 
-        /* Space saving heuristic.  Start filling from the left */
+        /* Space saving heuristic.  Start filling from the right */
         if (this.size == 0) {
             assert(this.leftblock == this.rightblock);
             assert(this.leftindex == this.rightindex + 1);
@@ -245,7 +340,7 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
             return consumeIterator(it);
         }
 
-        /* Space saving heuristic.  Start filling from the right */
+        /* Space saving heuristic.  Start filling from the left */
         if (this.size == 0) {
             assert(this.leftblock == this.rightblock);
             assert(this.leftindex == this.rightindex + 1);
