@@ -1,6 +1,7 @@
 package io.github.gaming32.stdpy;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertArrayEquals;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -106,5 +107,28 @@ public class BlockDequeTest {
         }
         assertEquals(list.toString(), "[6, 5, 4, 3, 2, 1]");
         assertEquals(deque.toString(), "[1, 2, 3, 4, 5, 6]"); // Test that it didn't get corrupted
+    }
+
+    @Test
+    public void testBlockData() {
+        BlockDeque<Integer> deque = initTestDeque();
+        deque.push(35);
+        deque.push(40);
+        deque.push(45);
+        deque.pop();
+        assertArrayEquals(deque.leftblock.data,
+                new Integer[] { null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                        null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                        null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                        null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                        null, 40 });
+        deque.pop();
+        deque.removeLast();
+        assertArrayEquals(deque.leftblock.data,
+                new Integer[] { 35, 1, 2, 3, 4, 5, null, null, null, null, null, null, null, null,
+                        null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                        null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                        null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                        null, null });
     }
 }
