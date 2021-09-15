@@ -16,19 +16,19 @@ This project supports Java 1.8 and later.
 
 Add the repository:
 ```groovy
-	allprojects {
-		repositories {
-			...
-			maven { url 'https://jitpack.io' }
-		}
-	}
+    allprojects {
+        repositories {
+            ...
+            maven { url 'https://jitpack.io' }
+        }
+    }
 ```
 
 Add the dependency:
 ```groovy
     dependencies {
-	        implementation 'com.github.Gaming32:stdpy:[SEE-BELOW]'
-	}
+            implementation 'com.github.Gaming32:stdpy:[SEE-BELOW]'
+    }
 ```
 ![Release](https://jitpack.io/v/Gaming32/stdpy.svg)
 
@@ -36,20 +36,20 @@ Add the dependency:
 
 Add the repository:
 ```xml
-	<repositories>
-		<repository>
-		    <id>jitpack.io</id>
-		    <url>https://jitpack.io</url>
-		</repository>
-	</repositories>
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
 ```
 
 Add the dependency:
 ```xml
-	<dependency>
-	    <groupId>com.github.Gaming32</groupId>
-	    <artifactId>stdpy</artifactId>
-	    <version>[SEE-BELOW]</version>
-	</dependency>
+    <dependency>
+        <groupId>com.github.Gaming32</groupId>
+        <artifactId>stdpy</artifactId>
+        <version>[SEE-BELOW]</version>
+    </dependency>
 ```
 ![Release](https://jitpack.io/v/Gaming32/stdpy.svg)
