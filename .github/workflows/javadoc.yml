@@ -15,7 +15,7 @@ jobs:
       - name: Build with Maven
         run: |
           cd stdpy
-          mvn clean javadoc:jar -f pom.xml
+          mvn -DdestDir=\${project.basedir}/../javadoc clean javadoc:jar -f pom.xml
       - name: Configure git
         run: |
           git config user.email "not@actual.person"
@@ -24,8 +24,6 @@ jobs:
         run: |
           git fetch
           git checkout -t origin/gh-pages
-          rm -rf javadoc
-          mv stdpy/target/apidocs javadoc
           git add javadoc
           git commit -m "Update javadoc for commit ${{ github.sha }}"
           git push

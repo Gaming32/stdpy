@@ -67,6 +67,7 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
         this.numfreeblocks = 0;
     }
 
+    @Override
     public E removeLast() {
         E item;
         Block prevblock;
@@ -94,6 +95,7 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
         return item;
     }
 
+    @Override
     public E removeFirst() {
         E item;
         Block prevblock;
@@ -143,6 +145,7 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
         }
     }
 
+    @Override
     public void addLast(E e) {
         appendInternal(e, this.maxlen);
     }
@@ -165,6 +168,7 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
         }
     }
 
+    @Override
     public void addFirst(E e) {
         appendleftInternal(e, this.maxlen);
     }
@@ -240,10 +244,12 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
         return changed;
     }
 
+    @Override
     public boolean addAll(Collection<? extends E> c) {
         return addAllLast(c);
     }
 
+    @Override
     public void clear() {
         Block b, prevblock, leftblock;
         int leftindex, n, m;
@@ -483,6 +489,7 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
         return count;
     }
 
+    @Override
     public boolean contains(Object o) {
         Block b = this.leftblock;
         int index = this.leftindex;
@@ -509,6 +516,7 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
         return false;
     }
 
+    @Override
     public int size() {
         return this.size;
     }
@@ -563,10 +571,12 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
         return indexOf(o, start, this.size);
     }
 
+    @Override
     public int indexOf(Object o) {
         return indexOf(o, 0, this.size);
     }
 
+    @Override
     public void add(int index, E element) {
         int n = this.size;
 
@@ -594,6 +604,7 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
         return new IndexOutOfBoundsException("Index " + i + " out of bounds for deque of length " + this.size);
     }
 
+    @Override
     public E get(int i) {
         Block b;
         int n, index = i;
@@ -628,6 +639,7 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
         return (E)b.data[i];
     }
 
+    @Override
     public E remove(int index) {
         E item;
 
@@ -640,6 +652,7 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
         return item;
     }
 
+    @Override
     public boolean remove(Object o) {
         E item;
         Block b = this.leftblock;
@@ -669,6 +682,7 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
         return true;
     }
 
+    @Override
     public E set(int index, E element) {
         E oldValue;
         Block b;
@@ -698,6 +712,7 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
         return oldValue;
     }
 
+    @Override
     public void forEach(Consumer<? super E> action) {
         Block b;
         E item;
@@ -719,6 +734,7 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
         }
     }
 
+    @Override
     public boolean equals(Object o) {
         if (o == null) {
             return false;
@@ -778,6 +794,7 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
         return this.maxlen == Integer.MAX_VALUE ? -1 : this.maxlen;
     }
 
+    @Override
     public Iterator<E> iterator() {
         return new DequeIter(this);
     }
@@ -800,10 +817,12 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
             this.counter = deque.size;
         }
 
+        @Override
         public boolean hasNext() {
             return this.counter > 0;
         }
 
+        @Override
         public E next() {
             E item;
 
@@ -827,6 +846,7 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
         }
     }
 
+    @Override
     public Iterator<E> descendingIterator() {
         return new DequeRevIter(this);
     }
@@ -840,6 +860,7 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
             this.counter = deque.size;
         }
 
+        @Override
         public E next() {
             E item;
             if (this.counter == 0) {
@@ -867,10 +888,12 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
     // * Remaining implementation of List<E> and Deque<E> *
     // ****************************************************
 
+    @Override
     public E element() {
         return getFirst();
     }
 
+    @Override
     public E getLast() {
         if (this.size == 0) {
             throw new NoSuchElementException();
@@ -878,15 +901,18 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
         return (E)this.rightblock.data[this.rightindex];
     }
 
+    @Override
     public boolean removeFirstOccurrence(Object o) {
         return remove(o);
     }
 
+    @Override
     public boolean offer(E e) {
         addLast(e);
         return true;
     }
 
+    @Override
     public E getFirst() {
         if (this.size == 0) {
             throw new NoSuchElementException();
@@ -894,52 +920,64 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
         return (E)this.leftblock.data[this.leftindex];
     }
 
+    @Override
     public E pop() {
         return removeFirst();
     }
 
+    @Override
     public E peekFirst() {
         return this.size == 0 ? null : (E)this.leftblock.data[this.leftindex];
     }
 
+    @Override
     public boolean offerFirst(E e) {
         addFirst(e);
         return true;
     }
 
+    @Override
     public E pollFirst() {
         return this.size == 0 ? null : removeFirst();
     }
 
+    @Override
     public E peekLast() {
         return this.size == 0 ? null : (E)this.rightblock.data[this.rightindex];
     }
 
+    @Override
     public boolean offerLast(E e) {
         addLast(e);
         return true;
     }
 
+    @Override
     public E poll() {
         return pollFirst();
     }
 
+    @Override
     public E pollLast() {
         return this.size == 0 ? null : removeLast();
     }
 
+    @Override
     public E remove() {
         return removeFirst();
     }
 
+    @Override
     public E peek() {
         return peekFirst();
     }
 
+    @Override
     public void push(E e) {
         addFirst(e);
     }
 
+    @Override
     public boolean removeLastOccurrence(Object o) {
         E item;
         Block b = this.rightblock;
