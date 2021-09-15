@@ -2,6 +2,7 @@ package io.github.gaming32.stdpy;
 
 import java.util.AbstractList;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.Iterator;
@@ -366,8 +367,8 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
                 destData = leftblock.data;
                 dest = leftindex;
                 n -= m;
-                destData[dest++] = srcData[src++];
-                System.arraycopy(srcData, src, destData, dest, m - 1);
+                System.arraycopy(srcData, src, destData, dest, m);
+                Arrays.fill(srcData, src, src + m, null);
             }
             if (rightindex < 0) {
                 assert(leftblock != rightblock);
@@ -416,8 +417,8 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
                 leftindex += m;
                 rightindex += m;
                 n += m;
-                destData[dest++] = srcData[src++];
-                System.arraycopy(srcData, src, destData, dest, m - 1);
+                System.arraycopy(srcData, src, destData, dest, m);
+                Arrays.fill(srcData, src, src + m, null);
             }
             if (leftindex == BLOCKLEN) {
                 assert(leftblock != rightblock);
@@ -427,6 +428,13 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
                 leftindex = 0;
             }
         }
+        if (b != null) {
+            freeblock(b);
+        }
+        this.leftblock = leftblock;
+        this.rightblock = rightblock;
+        this.leftindex = leftindex;
+        this.rightindex = rightindex;
     }
 
     public void rotate() {
@@ -584,7 +592,7 @@ public class BlockDeque<E> extends AbstractList<E> implements Deque<E> {
             throw new IllegalStateException("deque already at its maximum size");
         }
         if (index == n) {
-            this.add(element);
+            this.addLast(element);
             return;
         }
         if (index == 0) {
